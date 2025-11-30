@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <iomanip>
 #include <string>
 #include <cctype>
 using namespace std;
@@ -9,8 +10,10 @@ void adminPanel();
 void accManagePanel();
 void inventoryPanel();
 void salesReportPanel();
-
+void addProduct();
+void displayAccounts();
 void loginAsAdmin();
+void displayProducts();
 
 string adminUsername = "abc";
 string adminPassword = "123";
@@ -21,7 +24,6 @@ struct Accounts {
 };
 
 struct Product {
-    int id;
     string name;
     double price;
     int quantity;
@@ -31,13 +33,11 @@ struct Product {
 
 int main() {
     cout << "\n----- Welcome to NextGen Supermarket -----\n" << endl;
-    //moving to login panel
     loginPanel();
     return 0;
 }
 
 void loginPanel() {
-    //taking login type
     cout << "1. Login as User" << endl;
     cout << "2. Login as Admin" << endl;
     cout << "3. Create an Account" << endl;
@@ -51,12 +51,11 @@ void loginPanel() {
             cout << "Wrong Choice! Try Again" << endl;
         }
     }
-    cout << "-------------------\n" << endl;
     
-    // managing login type
     if(choice == 1) {
         // loginAsUser();
     } else if(choice == 2) {
+        cout << "-------------------\n" << endl;
         loginAsAdmin();
     } else if(choice == 3) {
         // createAccount();
@@ -67,7 +66,6 @@ void loginAsAdmin() {
     string username;
     string password;
 
-    // taking and verifying credentials
     while(true) {
         cout << "Enter Username: ";
         cin >> username;
@@ -77,7 +75,6 @@ void loginAsAdmin() {
             cout << "-------------------" << endl;
             cout << "Login Successfully!" << endl;
             cout << "-------------------\n" << endl;
-            // moving towards admin panel
             adminPanel();
             break;
         } else {
@@ -104,20 +101,16 @@ void adminPanel() {
     
     if(choice == 1) {
         cout << "-------------------\n" << endl;
-        // moving to inventory panel
         inventoryPanel();
     } else if(choice == 2) {
         cout << "-------------------\n" << endl;
-        //moving to account management panel
         accManagePanel();
     } else if(choice == 3) {
         cout << "-------------------\n" << endl;
-        //moving to sales reports panel
         salesReportPanel();
     } else if(choice == 4) {
         cout << "Logout!" << endl;
         cout << "-------------------\n" << endl;
-        //moving to login panel
         loginPanel();
     }
 }
@@ -143,25 +136,36 @@ void inventoryPanel() {
         }
     }
     
-    //pending
     if(choice == 1) {
-
+        cout << "-------------------\n" << endl;
+        addProduct();
     } else if(choice == 2) {
-
+        //pending
+        //pending
+        //pending
     } else if(choice == 3) {
-        
+        //pending
+        //pending
+        //pending
     } else if(choice == 4) {
-        
+        //pending
+        //pending
+        //pending
     } else if(choice == 5) {
-        
+        cout << "-------------------\n" << endl;
+        displayProducts();
     } else if(choice == 6) {
-        
+        //pending
+        //pending
+        //pending
     } else if(choice == 7) {
-
+        cout << "-------------------\n" << endl;
+        adminPanel();
     } else if(choice == 8) {
-
+        cout << "Logout!" << endl;
+        cout << "-------------------\n" << endl;
+        loginPanel();
     }
-    // pending
 }
 
 void salesReportPanel() {
@@ -208,16 +212,105 @@ void accManagePanel() {
         //pending
         //pending
     } else if(choice == 2) {
-        //pending
-        //pending
-        //pending
+        cout << "-------------------\n" << endl;
+        displayAccounts();
     } else if(choice == 3) {
-        //pending
-        //pending
-        //pending
+        cout << "-------------------\n" << endl;
+        adminPanel();
     } else if(choice == 4) {
-        //pending
-        //pending
-        //pending
+        cout << "Logout!" << endl;
+        cout << "-------------------\n" << endl;
+        loginPanel();
     }
+}
+
+void addProduct() {
+    Product product;
+    cout << "Enter Name: ";
+    cin >>  product.name;
+    cout << "Enter Price: ";
+    cin >> product.price;
+    cout << "Enter Brand: ";
+    cin >> product.brand;
+    cout << "Enter Category: ";
+    cin >> product.category;
+    cout << "Enter Quantity: ";
+    cin >> product.quantity;
+
+    ofstream file("products.txt", ios::app);
+    if (!file) {
+        cout << "File not found!" << endl;
+        return;
+    }
+    
+    file << product.name << " " << product.price << " " << product.brand << " " << product.category << " " << product.quantity << "\n";
+    cout << "-------------------" << endl;
+    cout << "Product Added Successfully!" << endl;
+    cout << "-------------------\n" << endl;
+    file.close();
+    inventoryPanel();
+}
+
+void displayAccounts() {
+    Accounts account;
+    ifstream file("users.txt", ios::app);
+
+    if (!file) {
+        cout << "File not found!" << endl;
+        return;
+    }
+
+    cout << left;
+    cout << setw(20) << "Usernames"
+         << setw(20) << "Passwords" 
+         << endl;
+    cout << string(40, '-') << endl;
+
+    int counter = 0;
+    while(file >> account.username >> account.password) {
+        cout << setw(20) << account.username
+            << setw(20) << account.password
+            << endl;
+        counter++;
+    }
+    file.close();
+    cout << "\nTotal Accounts = " << counter << endl;
+    cout << "-------------------\n" << endl;
+    accManagePanel();
+}
+
+void displayProducts() {
+    Product product;
+    ifstream file("products.txt", ios::app);
+
+    if (!file) {
+        cout << "File not found!" << endl;
+        return;
+    }
+
+    cout << left; 
+    cout << setw(20) << "Name"
+         << setw(15) << "Price(Rs)"
+         << setw(15) << "Brand"
+         << setw(20) << "Category"
+         << setw(15) << "Quantity"
+         << endl;
+
+    cout << string(85, '-') << endl;
+
+    int counter = 0;
+
+    while(file >> product.name >> product.price >> product.brand >> product.category >> product.quantity) {
+        cout << setw(20) << product.name
+            << setw(15) << product.price
+            << setw(15) << product.brand
+            << setw(20) << product.category
+            << setw(15) << product.quantity
+            << endl;
+        counter++;
+    }
+    file.close();
+    cout << "\nTotal Products = " << counter << endl;
+    cout << "-------------------\n" << endl;
+    inventoryPanel();
 }
