@@ -1,8 +1,11 @@
 #include <iostream>
 #include <fstream>
+#include <iomanip>
 #include <string>
 #include <cctype>
-#include <iomanip>
+#include <cstdlib>
+#include <ctime>
+#include <set>
 using namespace std;
 
 void loginPanel();
@@ -11,14 +14,25 @@ void createAccount();
 bool checkPasswordAuth(string password);
 void userPanel();
 bool savingUserAccount(string username, string password);
-void displayAllProducts();
+void displayProducts();
+int createId();
+void accManagePanel();
+void changePassword();
+void changeUsername();
+void inventoryPanel();
+void filterPanel();
+void filter1(string s, string filterBy);
+void filter2(int min, int max, string filterBy);
+string toLowerStr(string s);
+void searchProduct();
 
 struct Accounts {
+    int id;
     string username;
     string password;
 };
 
-struct Products {
+struct Product {
     int id;
     string name;
     double price;
@@ -35,30 +49,36 @@ int main() {
 }
 
 void loginPanel() {
-    //taking login type
     cout << "1. Login as User" << endl;
     cout << "2. Login as Admin" << endl;
     cout << "3. Create an Account" << endl;
+    cout << "4. Close App" << endl;
     int choice;
     while(true) {
-        cout << "Enter (1-3): ";
+        cout << "Enter (1-4): ";
         cin >> choice;
-        if(choice >= 1 && choice <= 3) {
+        if(choice >= 1 && choice <= 4) {
             break;
         } else {
             cout << "Wrong Choice! Try Again" << endl;
         }
     }
-    cout << "-------------------\n" << endl;
-
-    // managing login type
+    
     if(choice == 1) {
+        cout << "-------------------\n" << endl;
         loginAsUser();
     } else if(choice == 2) {
+        cout << "-------------------\n" << endl;
         // loginAsAdmin();
     } else if(choice == 3) {
+        cout << "-------------------\n" << endl;
         createAccount();
-    } 
+    } else if(choice == 4) {
+        cout << "-------------------" << endl;
+        cout << "App Closed!" << endl;
+        cout << "-------------------" << endl;
+        return;
+    }
 }
 
 void createAccount() {
@@ -77,7 +97,7 @@ void createAccount() {
     }
 
     bool found = false;
-    while(file >> account.username >> account.password) {
+    while(file >> account.id >> account.username >> account.password) {
         if(account.username == username) {
             found = true; 
             break;
@@ -87,7 +107,9 @@ void createAccount() {
     file.close();
 
     if(found) {
+        cout << "\n-------------------" << endl;
         cout << "Username already exists! Try different" << endl;
+        cout << "-------------------\n" << endl;
         createAccount();
     }
 
@@ -100,11 +122,15 @@ void createAccount() {
             cout << "-------------------" << endl;
             loginPanel();
         } else {
+            cout << "\n-------------------" << endl;
+            cout << "Error Creating Account! Try Again Later" << endl;
             cout << "-------------------\n" << endl;
             loginPanel();
         }
     }else {
+        cout << "\n-------------------" << endl;
         cout << "Invalid credentials! Try Again" << endl;
+        cout << "-------------------\n" << endl;
         createAccount();
     }
 }
@@ -139,7 +165,7 @@ void loginAsUser() {
     cin >> password;
 
     // validating account existence
-    Accounts user;
+    Accounts account;
 
     ifstream file("users.txt");
     if (!file) {
@@ -148,8 +174,8 @@ void loginAsUser() {
     }
 
     bool found = false;
-    while(file >> user.username >> user.password) {
-        if(user.username == username && user.password == password) {
+    while(file >> account.id >> account.username >> account.password) {
+        if(account.username == username && account.password == password) {
             found = true; 
             break;
         } 
@@ -160,10 +186,11 @@ void loginAsUser() {
     if(found) {
         cout << "\n-------------------" << endl;
         cout << "Login Successfully!" << endl;
-        cout << "-------------------" << endl;
+        cout << "-------------------\n" << endl;
         // moving to user-panel pending 
         userPanel();
     } else {
+        cout << "\n-------------------" << endl;
         cout << "Invalid Credentials! Try Again" << endl;
         cout << "-------------------\n" << endl;
         loginPanel();
@@ -173,10 +200,9 @@ void loginAsUser() {
 void userPanel() {
     int choice;
     cout << "-------------------\n" << endl;
-    cout << "1. Show All Products" << endl;
-    cout << "2. Search Product" << endl;
-    cout << "3. Go Back" << endl;
-    cout << "4. Logout" << endl;
+    cout << "1. Move To Inventory" << endl;
+    cout << "2. Account Management" << endl;
+    cout << "3. Logout" << endl;
 
     while(true) {
         cout << "Enter choice(1-3): ";
@@ -188,31 +214,56 @@ void userPanel() {
         }
     }
     if (choice == 1){
-        cout << "Following products are available in the store:" << endl;
-        displayAllProducts();
+        cout << "-------------------\n" << endl;
+        inventoryPanel();
     }
     else if (choice == 2){
-        //pending
-        //pending
-        //pending
+        cout << "-------------------\n" << endl;
+        accManagePanel();
     }
     else if (choice == 3){
-        userPanel();
-    }
-    else if (choice == 4){
+        cout << "-------------------\n" << endl;
         loginPanel();
     }
 }
 
-void displayAllProducts(){
-    Products products;
-    ifstream Products("products.txt");
-    string line;
-    cout << "id" << setw(20) << "Product Name" << setw(20) << "Price" << setw(20) << "brand" << setw(20) << "Category" << setw(20) << "Quantity" << endl;
-    cout << "--------------------------------------------------------------------------------------------------------------" << endl;
-    while (Products >> products.id >> products.name >> products.price >> products.brand >> products.category >> products.quantity){
-        cout << products.id << setw(20) << products.name << setw(20) << products.price << setw(20) << products.brand << setw(20) << products.category << setw(20) << products.quantity << endl;
+void displayProducts() {
+    Product product;
+    ifstream file("products.txt");
+
+    if (!file) {
+        cout << "File not found!" << endl;
+        return;
     }
+
+    cout << left; 
+    cout << setw(15) << "Id"
+         << setw(20) << "Name"
+         << setw(15) << "Price(Rs)"
+         << setw(15) << "Brand"
+         << setw(20) << "Category"
+         << setw(15) << "Quantity"
+         << endl;
+
+    cout << string(100, '-') << endl;
+
+    int counter = 0;
+
+    while(file >> product.id >> product.name >> product.price >> product.brand >> product.category >> product.quantity) {
+        cout << setw(15) << product.id 
+            << setw(20) << product.name
+            << setw(15) << product.price
+            << setw(15) << product.brand
+            << setw(20) << product.category
+            << setw(15) << product.quantity
+            << endl;
+        counter++;
+    }
+    if(counter == 0) {
+        cout << "No product available in inventory!" << endl;
+    }
+    file.close();
+    cout << "\nTotal Products = " << counter << endl;
 }
 
 bool savingUserAccount(string username, string password) {
@@ -224,10 +275,417 @@ bool savingUserAccount(string username, string password) {
         return false;
     }
     
+    account.id = createId();
     account.username = username;
     account.password = password;
 
-    file << account.username << " " << account.password << "\n";
+    file << account.id << " " << account.username << " " << account.password << "\n";
     file.close();
     return true;
+}
+
+int createId() {
+    srand(time(0));
+    int num = rand() % 500 + 1;
+    Accounts account;
+    ifstream file("users.txt");
+
+    if (!file) {
+        cout << "File not found!" << endl;
+        return num;
+    }
+
+    bool found = false;
+    while(file >> account.id >> account.username >> account.password) {
+        if(num == account.id) {
+            found = true;
+            break;
+        }
+    }
+
+    file.close();
+
+    if(found) {
+        return createId();
+    } else {
+        return num; 
+    }
+}
+
+void accManagePanel() {
+    int choice;
+    cout << "1. Change Password" << endl;
+    cout << "2. Change Username" << endl;
+    cout << "3. Go Back" << endl;
+    cout << "4. Logout" << endl;
+
+    while(true) {
+        cout << "Enter choice(1-4): ";
+        cin >> choice;
+        if(choice >= 1 && choice <= 4) {
+            break;
+        } else {
+            cout << "Wrong Choice! Try Again" << endl;
+        }
+    }
+
+    if(choice == 1) {
+        cout << "-------------------\n" << endl;
+        changePassword();
+    } else if(choice == 2) {
+        cout << "-------------------\n" << endl;
+        changeUsername();
+    } else if(choice == 3) {
+        cout << "-------------------\n" << endl;
+        userPanel();
+    } else if(choice == 4) {
+        cout << "Logout!" << endl;
+        cout << "-------------------\n" << endl;
+        loginPanel();
+    }
+}
+
+void changePassword() {
+    //pending
+    //pending
+    //pending
+}
+
+void changeUsername() {
+    //pending
+    //pending
+    //pending
+}
+
+void inventoryPanel() {
+    int choice;
+    cout << "1. View All Products" << endl;
+    cout << "2. Filter Products" << endl;
+    cout << "3. Search Product" << endl;
+    cout << "4. View Cart" << endl;
+    cout << "5. Proceed to Billing" << endl;
+    cout << "6. Go Back" << endl;
+    cout << "7. Logout" << endl;
+
+    while(true) {
+        cout << "Enter choice(1-7): ";
+        cin >> choice;
+        if(choice >= 1 && choice <= 7) {
+            break;
+        } else {
+            cout << "Wrong Choice! Try Again" << endl;
+        }
+    }
+
+    if(choice == 1) {
+        cout << "-------------------\n" << endl;
+        displayProducts();
+        cout << "-------------------\n" << endl;
+        inventoryPanel();
+    } else if(choice == 2) {
+        cout << "-------------------\n" << endl;
+        filterPanel();
+    } else if(choice == 3) {
+        cout << "-------------------\n" << endl;
+        searchProduct();
+    } else if(choice == 4) {
+        cout << "-------------------\n" << endl;
+        // pending
+        // pending
+        // pending
+    } else if(choice == 5) {
+        cout << "-------------------\n" << endl;
+        // pending
+        // pending
+        // pending
+    } else if(choice == 6) {
+        cout << "-------------------\n" << endl;
+        userPanel();
+    } else if(choice == 7) {
+        cout << "Logout!" << endl;
+        cout << "-------------------\n" << endl;
+        loginPanel();
+    }
+}
+
+void filterPanel() {
+    int choice;
+    cout << "1. Filter by Brand" << endl;
+    cout << "2. Filter by Category" << endl;
+    cout << "3. Filter by Price" << endl;
+    cout << "4. Filter by Quantity" << endl;
+    cout << "5. Go Back" << endl;
+    cout << "6. Logout" << endl;
+
+    while(true) {
+        cout << "Enter choice(1-6): ";
+        cin >> choice;
+        if(choice >= 1 && choice <= 6) {
+            break;
+        } else {
+            cout << "Wrong Choice! Try Again" << endl;
+        }
+    }
+
+    if(choice == 1) {
+        Product product;
+        ifstream file("products.txt");
+
+        cout << "\nAvailable Brands Are:\n" << endl;
+        set<string> brands; 
+
+        while (file >> product.id >> product.name >> product.price >> product.brand >> product.category >> product.quantity) {
+            brands.insert(product.brand);
+        }
+        file.close();
+
+        for (const string &brand : brands) {
+            cout << brand << endl;
+        }   
+
+        string brand;
+        cout << "\nEnter brand name: ";
+        cin >> brand;
+
+        filter1(brand, "Brand");
+
+    } else if(choice == 2) {
+
+        Product product;
+        ifstream file("products.txt");
+
+        cout << "\nAvailable Categories Are:\n" << endl;
+        set<string> categories;
+
+        while (file >> product.id >> product.name >> product.price >> product.brand >> product.category >> product.quantity) {
+            categories.insert(product.category);
+        }
+        file.close();
+
+        for (const string &category : categories) {
+            cout << category << endl;
+        } 
+
+        string category;
+        cout << "\nEnter category: ";
+        cin >> category;
+        
+        filter1(category, "Category");
+
+    }else if(choice == 3) {
+
+        int min, max;
+        cout << "-------------------\n" << endl;
+        cout << "Filter from Rs: ";
+        cin >> min;
+        cout << "Filter to Rs: ";
+        cin >> max;
+
+        if(min > max || min < 0 || max < 0) {
+            cout << "-------------------" << endl;
+            cout << "Invalid Range! Try Again" << endl;
+            cout << "-------------------\n" << endl;
+            filterPanel();
+            return;
+        }
+
+        filter2(min, max, "Price");
+
+    }else if(choice == 4) {
+
+        int min, max;
+        cout << "-------------------\n" << endl;
+        cout << "Filter from Quantity: ";
+        cin >> min;
+        cout << "Filter to Quantity: ";
+        cin >> max;
+
+        if(min > max || min < 0 || max < 0) {
+            cout << "-------------------" << endl;
+            cout << "Invalid Range! Try Again" << endl;
+            cout << "-------------------\n" << endl;
+
+            filterPanel();
+            return;
+        }
+
+        filter2(min, max, "Quantity");
+
+    }else if(choice == 5) {
+        cout << "-------------------\n" << endl;
+        inventoryPanel();
+    }else if(choice == 6) {
+        cout << "Logout!" << endl;
+        cout << "-------------------\n" << endl;
+        loginPanel();
+    }
+}
+
+void filter1(string s, string filterBy) {
+    Product product;
+
+    ifstream file("products.txt");
+    if(!file) {
+        cout << "Error opening file!";
+        return;
+    }
+
+    cout << left; 
+    cout << setw(15) << "Id"
+        << setw(20) << "Name"
+        << setw(15) << "Price(Rs)"
+        << setw(15) << "Brand"
+        << setw(20) << "Category"
+        << setw(15) << "Quantity"
+        << endl;
+
+    cout << string(100, '-') << endl;
+
+    int counter = 0;
+    if(filterBy == "Brand") {
+        while (file >> product.id >> product.name >> product.price >> product.brand >> product.category >> product.quantity) {
+            if(toLowerStr(product.brand) == toLowerStr(s)) {
+                counter++;
+                cout << setw(15) << product.id 
+                    << setw(20) << product.name
+                    << setw(15) << product.price
+                    << setw(15) << product.brand
+                    << setw(20) << product.category
+                    << setw(15) << product.quantity
+                    << endl;
+            }
+        }
+    } else if(filterBy == "Category") {
+        while (file >> product.id >> product.name >> product.price >> product.brand >> product.category >> product.quantity) {
+            if(toLowerStr(product.category) == toLowerStr(s)) {
+                counter++;
+                cout << setw(15) << product.id 
+                    << setw(20) << product.name
+                    << setw(15) << product.price
+                    << setw(15) << product.brand
+                    << setw(20) << product.category
+                    << setw(15) << product.quantity
+                    << endl;
+            }
+        }
+    }
+    
+    if(counter == 0) {
+        cout << "No product available in this " << filterBy << "!" << endl;
+    }
+
+    file.close();
+    cout << "-------------------\n" << endl;
+    filterPanel();
+}
+
+string toLowerStr(string s) {
+    for(int i = 0; i <= s.length(); i++) {
+        s[i] = tolower(s[i]);
+    } 
+    return s;
+}
+
+void filter2(int min, int max, string filterBy) {
+    Product product;
+
+    ifstream file("products.txt");
+    if(!file) {
+        cout << "Error opening file!";
+        return;
+    }
+
+    cout << left; 
+    cout << setw(15) << "Id"
+        << setw(20) << "Name"
+        << setw(15) << "Price(Rs)"
+        << setw(15) << "Brand"
+        << setw(20) << "Category"
+        << setw(15) << "Quantity"
+        << endl;
+
+    cout << string(100, '-') << endl;
+
+    int counter = 0;
+    if(filterBy == "Price") {
+        while (file >> product.id >> product.name >> product.price >> product.brand >> product.category >> product.quantity) {
+            if(product.price >= min && product.price <= max) {
+                counter++;
+                cout << setw(15) << product.id 
+                    << setw(20) << product.name
+                    << setw(15) << product.price
+                    << setw(15) << product.brand
+                    << setw(20) << product.category
+                    << setw(15) << product.quantity
+                    << endl;
+            }
+        }
+    } else if(filterBy == "Quantity") {
+        while (file >> product.id >> product.name >> product.price >> product.brand >> product.category >> product.quantity) {
+            if(product.quantity >= min && product.quantity <= max) {
+                counter++;
+                cout << setw(15) << product.id 
+                    << setw(20) << product.name
+                    << setw(15) << product.price
+                    << setw(15) << product.brand
+                    << setw(20) << product.category
+                    << setw(15) << product.quantity
+                    << endl;
+            }
+        }
+    }
+
+    if(counter == 0) {
+        cout << "No product available in this Price Range!" << endl;
+    }
+
+    file.close();
+    cout << "-------------------\n" << endl;
+    filterPanel();
+}
+
+void searchProduct() {
+    Product product;
+    string name;
+    cout << "Enter product name: ";
+    cin >> name;
+
+    ifstream file("products.txt");
+    if(!file) {
+        cout << "Error opening file!";
+        return;
+    }
+
+    cout << left; 
+            cout << setw(15) << "Id"
+                << setw(20) << "Name"
+                << setw(15) << "Price(Rs)"
+                << setw(15) << "Brand"
+                << setw(20) << "Category"
+                << setw(15) << "Quantity"
+                << endl;
+
+            cout << string(100, '-') << endl;
+
+    bool found = false;
+    while (file >> product.id >> product.name >> product.price >> product.brand >> product.category >> product.quantity) {
+        if(toLowerStr(product.name) == toLowerStr(name)) {
+            found = true;
+            cout << setw(15) << product.id 
+                << setw(20) << product.name
+                << setw(15) << product.price
+                << setw(15) << product.brand
+                << setw(20) << product.category
+                << setw(15) << product.quantity
+                << endl;
+        }
+    }
+
+    file.close();
+
+    if(!found) {
+        cout << "Product not found!" << endl;
+    }
+    cout << "-------------------\n" << endl;
+    inventoryPanel();
 }
