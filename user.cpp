@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <set>
+#include <windows.h>
 using namespace std;
 
 void loginPanel();
@@ -25,6 +26,9 @@ void filter1(string s, string filterBy);
 void filter2(int min, int max, string filterBy);
 string toLowerStr(string s);
 void searchProduct();
+void addToCart();
+void cart();
+void viewCart();
 
 struct Accounts {
     int id;
@@ -41,8 +45,22 @@ struct Product {
     int quantity;
 };
 
+struct Cart {
+    int productId;
+    int quantity;
+};
+
+Cart item[20];
+int cartItemsCount = 0;
+
+void setColor(int color) {
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
+}
+
 int main() {
+    setColor(1);
     cout << "\n----- Welcome to NextGen Supermarket -----\n" << endl;
+    setColor(7);
     //moving to login panel
     loginPanel();
     return 0;
@@ -60,7 +78,9 @@ void loginPanel() {
         if(choice >= 1 && choice <= 4) {
             break;
         } else {
+            setColor(4);
             cout << "Wrong Choice! Try Again" << endl;
+            setColor(7);
         }
     }
     
@@ -74,9 +94,11 @@ void loginPanel() {
         cout << "-------------------\n" << endl;
         createAccount();
     } else if(choice == 4) {
+        setColor(4);
         cout << "-------------------" << endl;
         cout << "App Closed!" << endl;
         cout << "-------------------" << endl;
+        setColor(7);
         return;
     }
 }
@@ -85,14 +107,19 @@ void createAccount() {
 // taking credential for new account
     string username, password;
     Accounts account;
+    setColor(3);
+    cout << "Note: Password should include atleast one uppercase, lowercase, number, special character and min 8 characters long" << endl;
+    setColor(7);
     cout << "Enter username: ";
     cin >> username;
-    cout << "Enter password(atleast one uppercase, lowercase, number, special character and min 8 characters long): ";
+    cout << "Enter password: ";
     cin >> password;
 
     ifstream file("users.txt");
     if (!file) {
+        setColor(4);
         cout << "File not found!" << endl;
+        setColor(7);
         return;
     }
 
@@ -107,9 +134,11 @@ void createAccount() {
     file.close();
 
     if(found) {
+        setColor(4);
         cout << "\n-------------------" << endl;
         cout << "Username already exists! Try different" << endl;
         cout << "-------------------\n" << endl;
+        setColor(7);
         createAccount();
     }
 
@@ -117,20 +146,26 @@ void createAccount() {
     if(checkPasswordAuth(password) && username != "") {
         // storing user account
         if (savingUserAccount(username, password)) {
-            cout << "-------------------" << endl;
+            setColor(2);
+            cout << "\n-------------------" << endl;
             cout << "Account Created Successfully!" << endl;
-            cout << "-------------------" << endl;
+            cout << "-------------------\n" << endl;
+            setColor(7);
             loginPanel();
         } else {
+            setColor(4);
             cout << "\n-------------------" << endl;
             cout << "Error Creating Account! Try Again Later" << endl;
             cout << "-------------------\n" << endl;
+            setColor(7);
             loginPanel();
         }
     }else {
+        setColor(4);
         cout << "\n-------------------" << endl;
         cout << "Invalid credentials! Try Again" << endl;
         cout << "-------------------\n" << endl;
+        setColor(7);
         createAccount();
     }
 }
@@ -169,7 +204,9 @@ void loginAsUser() {
 
     ifstream file("users.txt");
     if (!file) {
+        setColor(4);
         cout << "File not found!" << endl;
+        setColor(7);
         return;
     }
 
@@ -184,22 +221,26 @@ void loginAsUser() {
     file.close();
 
     if(found) {
+        setColor(2);
         cout << "\n-------------------" << endl;
         cout << "Login Successfully!" << endl;
         cout << "-------------------\n" << endl;
+        setColor(7);
         // moving to user-panel pending 
         userPanel();
     } else {
+        setColor(4);
         cout << "\n-------------------" << endl;
         cout << "Invalid Credentials! Try Again" << endl;
         cout << "-------------------\n" << endl;
+        setColor(7);
         loginPanel();
     }
 }
 
 void userPanel() {
     int choice;
-    cout << "-------------------\n" << endl;
+    cout << "-------------------" << endl;
     cout << "1. Move To Inventory" << endl;
     cout << "2. Account Management" << endl;
     cout << "3. Logout" << endl;
@@ -210,9 +251,12 @@ void userPanel() {
         if(choice >= 1 && choice <= 3) {
             break;
         } else {
+            setColor(4);
             cout << "Wrong Choice! Try Again" << endl;
+            setColor(7);
         }
     }
+
     if (choice == 1){
         cout << "-------------------\n" << endl;
         inventoryPanel();
@@ -222,7 +266,11 @@ void userPanel() {
         accManagePanel();
     }
     else if (choice == 3){
+        setColor(4);
+        cout << "\n-------------------" << endl;
+        cout << "Logout!" << endl;
         cout << "-------------------\n" << endl;
+        setColor(7);
         loginPanel();
     }
 }
@@ -232,11 +280,14 @@ void displayProducts() {
     ifstream file("products.txt");
 
     if (!file) {
+        setColor(4);
         cout << "File not found!" << endl;
+        setColor(7);
         return;
     }
 
     cout << left; 
+    setColor(1);
     cout << setw(15) << "Id"
          << setw(20) << "Name"
          << setw(15) << "Price(Rs)"
@@ -246,6 +297,7 @@ void displayProducts() {
          << endl;
 
     cout << string(100, '-') << endl;
+    setColor(7);
 
     int counter = 0;
 
@@ -260,10 +312,14 @@ void displayProducts() {
         counter++;
     }
     if(counter == 0) {
+        setColor(4);
         cout << "No product available in inventory!" << endl;
+        setColor(7);
     }
     file.close();
+    setColor(2);
     cout << "\nTotal Products = " << counter << endl;
+    setColor(7);
 }
 
 bool savingUserAccount(string username, string password) {
@@ -325,7 +381,9 @@ void accManagePanel() {
         if(choice >= 1 && choice <= 4) {
             break;
         } else {
+            setColor(4);
             cout << "Wrong Choice! Try Again" << endl;
+            setColor(7);
         }
     }
 
@@ -339,8 +397,11 @@ void accManagePanel() {
         cout << "-------------------\n" << endl;
         userPanel();
     } else if(choice == 4) {
+        setColor(4);
+        cout << "\n-------------------" << endl;
         cout << "Logout!" << endl;
         cout << "-------------------\n" << endl;
+        setColor(7);
         loginPanel();
     }
 }
@@ -373,7 +434,9 @@ void inventoryPanel() {
         if(choice >= 1 && choice <= 7) {
             break;
         } else {
+            setColor(4);
             cout << "Wrong Choice! Try Again" << endl;
+            setColor(7);
         }
     }
 
@@ -381,18 +444,20 @@ void inventoryPanel() {
         cout << "-------------------\n" << endl;
         displayProducts();
         cout << "-------------------\n" << endl;
-        inventoryPanel();
+        cart();
     } else if(choice == 2) {
         cout << "-------------------\n" << endl;
         filterPanel();
+        cout << "-------------------\n" << endl;
+        cart();
     } else if(choice == 3) {
         cout << "-------------------\n" << endl;
         searchProduct();
+        cout << "-------------------\n" << endl;
+        cart();
     } else if(choice == 4) {
         cout << "-------------------\n" << endl;
-        // pending
-        // pending
-        // pending
+        viewCart();
     } else if(choice == 5) {
         cout << "-------------------\n" << endl;
         // pending
@@ -402,8 +467,11 @@ void inventoryPanel() {
         cout << "-------------------\n" << endl;
         userPanel();
     } else if(choice == 7) {
+        setColor(4);
+        cout << "\n-------------------" << endl;
         cout << "Logout!" << endl;
         cout << "-------------------\n" << endl;
+        setColor(7);
         loginPanel();
     }
 }
@@ -423,7 +491,9 @@ void filterPanel() {
         if(choice >= 1 && choice <= 6) {
             break;
         } else {
+            setColor(4);
             cout << "Wrong Choice! Try Again" << endl;
+            setColor(7);
         }
     }
 
@@ -431,7 +501,9 @@ void filterPanel() {
         Product product;
         ifstream file("products.txt");
 
+        setColor(1);
         cout << "\nAvailable Brands Are:\n" << endl;
+        setColor(7);
         set<string> brands; 
 
         while (file >> product.id >> product.name >> product.price >> product.brand >> product.category >> product.quantity) {
@@ -454,7 +526,9 @@ void filterPanel() {
         Product product;
         ifstream file("products.txt");
 
+        setColor(1);
         cout << "\nAvailable Categories Are:\n" << endl;
+        setColor(7);
         set<string> categories;
 
         while (file >> product.id >> product.name >> product.price >> product.brand >> product.category >> product.quantity) {
@@ -482,9 +556,11 @@ void filterPanel() {
         cin >> max;
 
         if(min > max || min < 0 || max < 0) {
+            setColor(4);
             cout << "-------------------" << endl;
             cout << "Invalid Range! Try Again" << endl;
             cout << "-------------------\n" << endl;
+            setColor(7);
             filterPanel();
             return;
         }
@@ -501,9 +577,11 @@ void filterPanel() {
         cin >> max;
 
         if(min > max || min < 0 || max < 0) {
+            setColor(4);
             cout << "-------------------" << endl;
             cout << "Invalid Range! Try Again" << endl;
             cout << "-------------------\n" << endl;
+            setColor(7);
 
             filterPanel();
             return;
@@ -515,8 +593,11 @@ void filterPanel() {
         cout << "-------------------\n" << endl;
         inventoryPanel();
     }else if(choice == 6) {
+        setColor(4);
+        cout << "\n-------------------" << endl;
         cout << "Logout!" << endl;
         cout << "-------------------\n" << endl;
+        setColor(7);
         loginPanel();
     }
 }
@@ -531,6 +612,7 @@ void filter1(string s, string filterBy) {
     }
 
     cout << left; 
+    setColor(1);
     cout << setw(15) << "Id"
         << setw(20) << "Name"
         << setw(15) << "Price(Rs)"
@@ -540,6 +622,7 @@ void filter1(string s, string filterBy) {
         << endl;
 
     cout << string(100, '-') << endl;
+    setColor(7);
 
     int counter = 0;
     if(filterBy == "Brand") {
@@ -571,7 +654,9 @@ void filter1(string s, string filterBy) {
     }
     
     if(counter == 0) {
+        setColor(4);
         cout << "No product available in this " << filterBy << "!" << endl;
+        setColor(7);
     }
 
     file.close();
@@ -596,6 +681,7 @@ void filter2(int min, int max, string filterBy) {
     }
 
     cout << left; 
+    setColor(1);
     cout << setw(15) << "Id"
         << setw(20) << "Name"
         << setw(15) << "Price(Rs)"
@@ -605,6 +691,7 @@ void filter2(int min, int max, string filterBy) {
         << endl;
 
     cout << string(100, '-') << endl;
+    setColor(7);
 
     int counter = 0;
     if(filterBy == "Price") {
@@ -636,7 +723,9 @@ void filter2(int min, int max, string filterBy) {
     }
 
     if(counter == 0) {
+        setColor(4);
         cout << "No product available in this Price Range!" << endl;
+        setColor(7);
     }
 
     file.close();
@@ -657,15 +746,17 @@ void searchProduct() {
     }
 
     cout << left; 
-            cout << setw(15) << "Id"
-                << setw(20) << "Name"
-                << setw(15) << "Price(Rs)"
-                << setw(15) << "Brand"
-                << setw(20) << "Category"
-                << setw(15) << "Quantity"
-                << endl;
+    setColor(1);
+    cout << setw(15) << "Id"
+        << setw(20) << "Name"
+        << setw(15) << "Price(Rs)"
+        << setw(15) << "Brand"
+        << setw(20) << "Category"
+        << setw(15) << "Quantity"
+        << endl;
 
-            cout << string(100, '-') << endl;
+    cout << string(100, '-') << endl;
+    setColor(7);
 
     bool found = false;
     while (file >> product.id >> product.name >> product.price >> product.brand >> product.category >> product.quantity) {
@@ -684,8 +775,154 @@ void searchProduct() {
     file.close();
 
     if(!found) {
+        setColor(4);
         cout << "Product not found!" << endl;
+        setColor(7);
     }
+    cout << "-------------------\n" << endl;
+    inventoryPanel();
+}
+
+void cart() {
+    int choice;
+    cout << "1. Add to Cart" << endl;
+    cout << "2. Go Back" << endl;
+
+    while(true) {
+        cout << "Enter choice(1-2): ";
+        cin >> choice;
+        if(choice >= 1 && choice <= 2) {
+            break;
+        } else {
+            setColor(4);
+            cout << "Wrong Choice! Try Again" << endl;
+            setColor(7);
+        }
+    }
+
+    if(choice == 1) {
+        cout << "-------------------\n" << endl;
+        addToCart();
+    } else if(choice == 2) {
+        cout << "-------------------\n" << endl;
+        inventoryPanel();
+    }
+}
+
+void viewCart() {
+    Product product;
+    ifstream file("products.txt");
+
+    if (!file) {
+        cout << "File not found!" << endl;
+        return;
+    }
+
+    cout << left; 
+    setColor(1);
+    cout << setw(15) << "Id"
+         << setw(20) << "Name"
+         << setw(20) << "Price per Unit(Rs)"
+         << setw(20) << "Total Price(Rs)"
+         << setw(15) << "Brand"
+         << setw(20) << "Category"
+         << setw(15) << "Quantity"
+         << endl;
+
+    cout << string(130, '-') << endl;
+    setColor(7);
+
+    if(cartItemsCount == 0) {
+        setColor(4);
+        cout << "No item added in cart!" << endl;
+        setColor(7);
+        cout << "-------------------\n" << endl;
+        inventoryPanel();
+        return;
+    }
+
+    while(file >> product.id >> product.name >> product.price >> product.brand >> product.category >> product.quantity) {
+        for(int i = 0; i <= cartItemsCount; i++) {
+            if(item[i].productId == product.id) {
+                cout << setw(15) << product.id 
+                << setw(20) << product.name
+                << setw(20) << product.price
+                << setw(20) << product.price * item[i].quantity
+                << setw(15) << product.brand
+                << setw(20) << product.category
+                << setw(15) << item[i].quantity
+                << endl;
+            }
+        }
+    }
+    file.close();
+    cout << "-------------------\n" << endl;
+    inventoryPanel();
+}
+
+void addToCart() {
+    Product product;
+    int choice = 1;
+
+    while(choice != 0) {
+        ifstream file("products.txt");
+        if(!file) {
+            cout << "Error opening file!" << endl;
+            return;
+        }
+
+        int id, quantity;
+        cout << "Enter Product ID to add to cart: ";
+        cin >> id;
+        cout << "Enter Quantity: ";
+        cin >> quantity;
+
+        bool found = false;
+
+        while(file >> product.id >> product.name >> product.price 
+                   >> product.brand >> product.category >> product.quantity) {
+
+            if(product.id == id) {
+                found = true;
+
+                if(quantity > product.quantity) {
+                    setColor(4);
+                    cout << "\n-------------------" << endl;
+                    cout << "Insufficient stock! Available: " 
+                         << product.quantity << endl;
+                    cout << "-------------------\n" << endl;
+                    setColor(7);
+                } else {
+                    item[cartItemsCount].productId = id;
+                    item[cartItemsCount].quantity = quantity;
+                    cartItemsCount++;
+
+                    setColor(2);
+                    cout << "\n-------------------" << endl;
+                    cout << "Product Added to Cart!" << endl;
+                    cout << "-------------------\n" << endl;
+                    setColor(7);
+                }
+                break;
+            }
+        }
+
+        if(!found) {
+            setColor(4);
+            cout << "\n-------------------" << endl;
+            cout << "Product ID does not exist!" << endl;
+            cout << "-------------------\n" << endl;
+            setColor(7);
+        }
+
+        file.close();
+
+        setColor(1);
+        cout << "Add more products? (1 = Yes, 0 = No): ";
+        setColor(7);
+        cin >> choice;
+    }
+
     cout << "-------------------\n" << endl;
     inventoryPanel();
 }
