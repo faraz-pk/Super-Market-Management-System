@@ -346,15 +346,109 @@ void accManagePanel() {
 }
 
 void changePassword() {
-    //pending
-    //pending
-    //pending
+    string password, newpassword, confirmpassword;
+    Accounts account;
+    cout << "Enter Old password: ";
+    cin >> password;
+    cout << "Enter New password: ";
+    cin >> newpassword;
+    cout << "Confirm New password: ";
+    cin >> confirmpassword;
+
+    ifstream file("users.txt");
+    ofstream temp("temporary.txt");
+    if (!file || !temp){
+        cout << "File not found!\nPlease contact with admin at admin@gmail.com." << endl;
+        return;
+    }
+
+    bool found = false;
+    while (file >> account.id >> account.username >> account.password){
+        if (account.password == password){
+            account.password = newpassword;
+            found = true;
+        }
+        temp << account.id << " " << account.username << " " << account.password << endl;
+    }
+    file.close();
+    temp.close();
+
+    if (!found){
+        cout << "Please enter the correct old password!" << endl;
+        remove("temporary.txt");
+        changePassword();
+    }
+    else {
+        if (checkPasswordAuth(newpassword)){
+            if (newpassword == confirmpassword){
+                savingUserAccount(account.username , account.password);
+                cout << "Password Changed Successfullly!" << endl;
+                remove("users.txt");
+                rename("temporary.txt" , "users.txt");
+            }
+            else {
+                cout << "New passwords doesn't match!\nPlease try again..." << endl;
+                remove("temporary.txt");
+                changePassword();
+            }
+        }
+        else {
+            cout << "Please Write password fulfilling given requirements!" << endl;
+        }
+    }
+    
+    accManagePanel();
 }
 
 void changeUsername() {
-    //pending
-    //pending
-    //pending
+    string username, newusername, confirmusername;
+    Accounts account;
+    cout << "Enter old username: ";
+    cin >> username;
+    cout << "Enter new username: ";
+    cin >> newusername;
+    cout << "Confirm new username: ";
+    cin >> confirmusername;
+
+    ifstream into("users.txt");
+    ofstream outof("temp.txt");
+
+    if (!into || !outof){
+        cout << "Files doesn't exists!\nPlease contact with admin at admin@gmail.com." << endl;
+        return;
+    }
+
+    bool found = false;
+    while (into >> account.id >> account.username >> account.password){
+        if (account.username == username){
+            account.username = newusername;
+            found = true;
+        }
+        outof << account.id << " " << account.username << " " << account.password << endl;
+    }
+    into.close();
+    outof.close();
+
+    if (!found) {
+        cout << "Please Enter the correct old username!" << endl;
+        remove("temp.txt");
+        changeUsername();
+    }
+    else {
+        if (newusername == confirmusername){
+            savingUserAccount(account.username , account.password);
+            cout << "Username Changed Successfully!" << endl;
+            remove("users.txt");
+            rename("temp.txt" , "users.txt");
+        }
+        else {
+            cout << "New usernames doesn't match\nPlease try again..." << endl;
+            remove("temp.txt");
+            changeUsername();
+        }
+    }
+
+    accManagePanel();
 }
 
 void inventoryPanel() {
